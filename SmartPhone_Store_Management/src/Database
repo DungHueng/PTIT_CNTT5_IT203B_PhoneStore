@@ -1,0 +1,86 @@
+DROP DATABASE IF EXISTS smartphoneStoreManagement;
+CREATE DATABASE smartphoneStoreManagement;
+USE smartphoneStoreManagement;
+
+CREATE TABLE users (
+    userId INT PRIMARY KEY AUTO_INCREMENT,
+    fullName VARCHAR(255),
+    userName VARCHAR(255),
+    password VARCHAR(255),
+    email VARCHAR(50) UNIQUE,
+    phone VARCHAR(20),
+    address VARCHAR(50),
+    role ENUM ('ADMIN', 'CUSTOMER') DEFAULT 'CUSTOMER'
+);
+
+INSERT INTO users (fullName, userName, password, email, phone, address, role)
+    VALUES ('Hoang Trung Dung', 'DungHoang', '123321123', 'admin@gmail.com', '0123452746', 'Lao Cai', 'ADMIN');
+
+CREATE TABLE categories ( -- Danh mục
+    categoryId INT PRIMARY KEY AUTO_INCREMENT,
+    categoryName VARCHAR(255)
+);
+
+CREATE TABLE products ( -- Sản phẩm
+    productId INT PRIMARY KEY AUTO_INCREMENT,
+    categoryId INT,
+    productName VARCHAR(255),
+    storage VARCHAR(50),
+    color VARCHAR(50),
+    price DECIMAL(13, 2),
+    stock INT,
+    FOREIGN KEY (categoryId) REFERENCES categories(categoryId)
+);
+
+CREATE TABLE orders ( -- Đơn hàng
+    orderId INT PRIMARY KEY AUTO_INCREMENT,
+    userID INT,
+    totalAmount DECIMAL(13, 2),
+    status ENUM('PENDING', 'SHIPPING', 'DELIVERED', 'CANCELED') DEFAULT 'PENDING',
+    FOREIGN KEY (userID) REFERENCES users(userId)
+);
+
+CREATE TABLE order_details (
+  orderDetail_Id INT PRIMARY KEY AUTO_INCREMENT,
+  quantity INT,
+  orderId INT,
+  productId INT,
+  orderDetail_Price DECIMAL(13, 2),
+  FOREIGN KEY (orderId) REFERENCES orders(orderId),
+  FOREIGN KEY (productId) REFERENCES products(productId)
+);
+
+CREATE TABLE carts (
+    cartId INT PRIMARY KEY AUTO_INCREMENT,
+    userId INT,
+    productId INT,
+    quantity INT,
+    FOREIGN KEY (userId) REFERENCES users(userId),
+    FOREIGN KEY (productId) REFERENCES products(productId)
+);
+
+DELIMITER //
+CREATE PROCEDURE register_Users (
+    IN u_fullName VARCHAR(255),
+    IN u_userName VARCHAR(255),
+    IN u_password VARCHAR(50),
+    IN u_email VARCHAR(50),
+    IN u_phone VARCHAR(20),
+    IN u_address VARCHAR(50)
+)
+BEGIN
+    INSERT INTO users(fullName, userName, password, email, phone, address)
+    VALUES
+        (u_fullName, u_userName, u_password, u_email, u_phone, u_address);
+end //
+
+DELIMITER //
+CREATE PROCEDURE login_Users (
+    IN u_userName VARCHAR(255),
+    IN u_email VARCHAR(50),
+    IN u_password VARCHAR(50)
+)
+BEGIN
+    SELECT * FROM users
+             WHERE userName = u_userName AND email = u_email AND password = u_password;
+end //
